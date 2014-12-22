@@ -556,16 +556,22 @@ class CoinbaseConnection(object):
 
             return transfers
 
-    def get_transaction(self, transaction_id):
+    def get_transaction(self, transaction_id, account_id=None):
         """
         Retrieve a transaction's details
         :param transaction_id: Unique transaction identifier
+        :param account_id: Specify which account is used for fetching data.
         :return: transaction as json
         """
         self._require_authentication()
 
         url = coinbase_url('transactions', transaction_id)
-        response = self.session.get(url)
+
+        params = {}
+        if account_id:
+            params['account_id'] = account_id
+
+        response = self.session.get(url=url, params=params)
         results = response.json()
 
         if not results.get('success', True):
