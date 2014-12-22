@@ -174,9 +174,9 @@ class CoinbaseAuth(AuthBase):
         return req
 
 
-class CoinbaseAccount(object):
+class CoinbaseConnection(object):
     """
-    Primary object for interacting with a Coinbase account
+    Primary object for interacting with a Coinbase connection
 
     You may use oauth credentials, an API key + secret, a lone API key
     (deprecated), or no auth (for unauthenticated resources only).
@@ -220,6 +220,19 @@ class CoinbaseAccount(object):
     def _require_authentication(self):
         if not self.authenticated:
             raise Exception('Authentication credentials required')
+
+    @property
+    def accounts(self):
+        """
+        Retrieve coinbase accounts
+
+        :return: accounts as json
+        """
+        self._require_authentication()
+
+        url = coinbase_url('accounts')
+        response = self.session.get(url)
+        return response.json()
 
     @property
     def balance(self):
