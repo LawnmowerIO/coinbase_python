@@ -560,7 +560,7 @@ class CoinbaseConnection(object):
         """
         Retrieve a transaction's details
         :param transaction_id: Unique transaction identifier
-        :return: CoinbaseTransaction object with transaction details
+        :return: transaction as json
         """
         self._require_authentication()
 
@@ -569,10 +569,10 @@ class CoinbaseConnection(object):
         results = response.json()
 
         if not results.get('success', True):
-            pass
-            #TODO:  Add error handling
+            raise CoinbaseError('Failed to get transaction details',
+                                response_parsed.get('errors'))
 
-        return CoinbaseTransaction.from_coinbase_dict(results['transaction'])
+        return results['transaction']
 
     def get_user_details(self):
         """
