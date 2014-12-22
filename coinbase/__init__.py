@@ -353,7 +353,7 @@ class CoinbaseConnection(object):
             raise CoinbaseError('Failed to buy btc.',
                                 response_parsed.get('errors'))
 
-        return CoinbaseTransfer.from_coinbase_dict(response_parsed['transfer'])
+        return response_parsed['transfer']
 
     def sell_btc(self, qty):
         """
