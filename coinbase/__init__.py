@@ -221,6 +221,19 @@ class CoinbaseConnection(object):
         if not self.authenticated:
             raise Exception('Authentication credentials required')
 
+    def get_account(self, account_id):
+        """
+        Retrieve coinbase account with account_id
+
+        :param account_id: which account to grab
+        :return: account as json
+        """
+        self._require_authentication()
+
+        url = coinbase_url('accounts', str(account_id))
+        response = self.session.get(url)
+        return response.json()
+
     @property
     def accounts(self):
         """
