@@ -415,7 +415,7 @@ class CoinbaseConnection(object):
         return CoinbaseTransaction \
             .from_coinbase_dict(response_parsed['transaction'])
 
-    def send(self, to_address, amount, notes='', user_fee=None, idem=None):
+    def send(self, to_address, amount, amount_currency_iso, notes='', user_fee=None, idem=None, account_id=None):
         """
         Send BitCoin from this account to either an email address or a BTC
         address
@@ -429,7 +429,9 @@ class CoinbaseConnection(object):
         transaction with the same idem parameter already exists for this
         sender, that previous transaction will be returned and a new one will
         not be created. Max length 100 characters.
-        :return: CoinbaseTransaction with status and details
+        :param account_id: Specify which account is used for fetching data
+        :param amount_currency_iso: A currency symbol such as USD, EUR, or BTC
+        :return: transaction as json
         :raise: CoinbaseError with the error list received from Coinbase on
                  failure
         """
@@ -442,20 +444,19 @@ class CoinbaseConnection(object):
             'transaction': {
                 'to': to_address,
                 'notes': notes,
+                'amount_string': str(amount),
+                'amount_currency_iso': str(amount_currency_iso)
             },
         }
-
-        if amount.currency == 'BTC':
-            request_data['transaction']['amount'] =  str(amount.amount)
-        else:
-            request_data['transaction']['amount_string'] = str(amount.amount)
-            request_data['transaction']['amount_currency_iso'] = amount.currency
 
         if user_fee is not None:
             request_data['transaction']['user_fee'] = str(user_fee)
 
         if idem is not None:
             request_data['transaction']['idem'] = str(idem)
+
+        if account_id is not None:
+            request_data['account_id'] = str(account_id)
 
         response = self.session.post(url=url, data=json.dumps(request_data))
         response_parsed = response.json()
@@ -464,8 +465,7 @@ class CoinbaseConnection(object):
             raise CoinbaseError('Failed to send btc.',
                                 response_parsed.get('errors'))
 
-        return CoinbaseTransaction \
-            .from_coinbase_dict(response_parsed['transaction'])
+        return response_parsed['transaction']
 
     def transactions(self, count=30):
         """
@@ -514,8 +514,10 @@ class CoinbaseConnection(object):
 
         if transfer_id:
             url = coinbase_url('transfers', str(transfer_id))
+
             response = self.session.get(url=url, params=params)
             parsed_transfer = response.json()
+
             return parsed_transfer['transfer']
         else:
             url = coinbase_url('transfers')
