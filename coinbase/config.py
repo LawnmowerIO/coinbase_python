@@ -1,6 +1,6 @@
 __author__ = 'gsibble'
 
-COINBASE_ENDPOINT = 'https://api.coinbase.com/v1/'
+COINBASE_ENDPOINT = 'https://api.coinbase.com/v1'
 
 COINBASE_AUTH_URI = 'https://www.coinbase.com/oauth/authorize'
 COINBASE_TOKEN_URI = 'https://www.coinbase.com/oauth/token'
