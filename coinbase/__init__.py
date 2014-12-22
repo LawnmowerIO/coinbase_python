@@ -498,35 +498,48 @@ class CoinbaseConnection(object):
 
         return transactions
 
-    def transfers(self, count=30):
+    def transfers(self, count=30, account_id=None, transfer_id=None):
         """
         Retrieve the list of transfers for the current account
         :param count: How many transfers to retrieve
+        :param account_id: Specify which account is used for fetching data.
+        :param transfer_id: if passed, just get this individual transfer
         :return: List of CoinbaseTransfer objects
         """
         self._require_authentication()
 
-        url = coinbase_url('transfers')
-        pages = int((count - 1) / 30) + 1
-        transfers = []
+        params = {}
+        if account_id:
+            params['account_id'] = account_id
 
-        reached_final_page = False
+        if transfer_id:
+            url = coinbase_url('transfers', str(transfer_id))
+            response = self.session.get(url=url, params=params)
+            parsed_transfer = response.json()
+            return parsed_transfer['transfer']
+        else:
+            url = coinbase_url('transfers')
 
-        for page in range(1, pages + 1):
+            pages = int((count - 1) / 30) + 1
+            transfers = []
 
-            if not reached_final_page:
-                params = {'page': page}
-                response = self.session.get(url=url, params=params)
-                parsed_transfers = response.json()
+            reached_final_page = False
 
-                if parsed_transfers['num_pages'] == page:
-                    reached_final_page = True
+            for page in range(1, pages + 1):
 
-                for transfer in parsed_transfers['transfers']:
-                    transfers.append(CoinbaseTransfer
-                                     .from_coinbase_dict(transfer['transfer']))
+                if not reached_final_page:
+                    params['page'] = page
+                    response = self.session.get(url=url, params=params)
+                    parsed_transfers = response.json()
 
-        return transfers
+                    if parsed_transfers['num_pages'] == page:
+                        reached_final_page = True
+
+                    for transfer in parsed_transfers['transfers']:
+                        transfers.append(CoinbaseTransfer
+                                         .from_coinbase_dict(transfer['transfer']))
+
+            return transfers
 
     def get_transaction(self, transaction_id):
         """
